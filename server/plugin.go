@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost-server/plugin"
 )
@@ -22,7 +24,32 @@ type Plugin struct {
 
 // ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, world!")
+	cookie, err := r.Cookie("canary")
+	if err != nil {
+		p.handleCookie(w)
+	} else if cookie.Value == "never" {
+		p.handleCookie(w)
+	}
 }
 
-// See https://developers.mattermost.com/extend/plugins/server/reference/
+func (p *Plugin) handleCookie(w http.ResponseWriter) {
+	config := p.getConfiguration()
+	randomNumber := rand.Intn(100)
+	if randomNumber < config.CanaryPercentage {
+		p.addCookie(w, "always")
+	} else {
+		p.addCookie(w, "never")
+	}
+}
+
+func (p *Plugin) addCookie(w http.ResponseWriter, cookieValue string) {
+	expire := time.Now().AddDate(0, 0, 1)
+	canaryCookie := http.Cookie{
+		Name:    "canary",
+		Value:   cookieValue,
+		Expires: expire,
+		Path:    "/",
+	}
+	http.SetCookie(w, &canaryCookie)
+	fmt.Fprint(w, "Setting cookie for Canary build!")
+}

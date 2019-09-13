@@ -17,6 +17,11 @@
     "settings_schema": {
         "header": "",
         "footer": "",
-        "settings": []
+        "settings": [{
+            "key": "CanaryPercentage",
+            "display_name": "Canary Percentage",
+            "type": "text",
+            "help_text": "The percentage of users that will be sent to canary build"
+        }]
     }
 }
