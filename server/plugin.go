@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -22,26 +23,45 @@ type Plugin struct {
 	configuration *configuration
 }
 
-// ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
+// ServeHTTP demonstrates a plugin that handles HTTP requests.
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("canary")
 	if err != nil {
-		p.handleCookie(w)
+		p.API.LogInfo("Canary cookie does not exist. Setting up.")
+		err := p.handleCookie(w)
+		if err != nil {
+			p.API.LogError("Unable set cookie" + err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 	} else if cookie.Value == "never" {
-		p.handleCookie(w)
+		p.API.LogInfo("Canary cookie is set to never.")
+		err := p.handleCookie(w)
+		if err != nil {
+			p.API.LogError("Unable set cookie" + err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 	}
 }
 
-func (p *Plugin) handleCookie(w http.ResponseWriter) {
+// handleCookie function is used to check the canary percentage and call the addCookie function.
+func (p *Plugin) handleCookie(w http.ResponseWriter) error {
 	config := p.getConfiguration()
+	percentage, err := strconv.Atoi(config.CanaryPercentage)
+	if err != nil {
+		return err
+	}
 	randomNumber := rand.Intn(100)
-	if randomNumber < config.CanaryPercentage {
+	if randomNumber < percentage {
+		p.API.LogInfo("Setting Canary cookie to always.")
 		p.addCookie(w, "always")
 	} else {
+		p.API.LogInfo("Setting Canary cookie to never.")
 		p.addCookie(w, "never")
 	}
+	return nil
 }
 
+// addCookie function is used to set the canary cookie.
 func (p *Plugin) addCookie(w http.ResponseWriter, cookieValue string) {
 	expire := time.Now().AddDate(0, 0, 1)
 	canaryCookie := http.Cookie{
