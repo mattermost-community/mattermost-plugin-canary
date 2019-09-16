@@ -1,6 +1,6 @@
 {
-    "id": "com.mattermost.canary-plugin",
-    "name": "Canary Plugin",
+    "id": "com.mattermost.canary",
+    "name": "Canary",
     "description": "This plugin is used to configure canary deployments.",
     "version": "0.1.0",
     "min_server_version": "5.12.0",
