@@ -30,14 +30,14 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.API.LogInfo("Canary cookie does not exist. Setting up.")
 		err := p.handleCookie(w)
 		if err != nil {
-			p.API.LogError("Unable set cookie" + err.Error())
+			p.API.LogError("Unable to set cookie" + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	} else if cookie.Value == "never" {
 		p.API.LogInfo("Canary cookie is set to never.")
 		err := p.handleCookie(w)
 		if err != nil {
-			p.API.LogError("Unable set cookie" + err.Error())
+			p.API.LogError("Unable to set cookie" + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
