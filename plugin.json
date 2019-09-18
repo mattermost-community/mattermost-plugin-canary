@@ -21,7 +21,7 @@
             "key": "CanaryPercentage",
             "display_name": "Canary Percentage",
             "type": "text",
-            "help_text": "The percentage of users that will be sent to canary build"
+            "help_text": "The percentage of users that will be sent to canary build."
         }]
     }
 }
