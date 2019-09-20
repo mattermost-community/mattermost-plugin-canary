@@ -44,46 +44,51 @@ func (p *Plugin) handleCookieCheck(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
 		return
 	}
+	response := apiResponse{"", "", http.StatusOK}
 	cookie, err := r.Cookie("canary")
 	if err != nil {
 		p.API.LogDebug("Canary cookie does not exist for user " + userID)
-		err := p.canaryPercentage(w, userID)
+		response, err = p.addCanaryCookieBasedOnPercentage(w, userID)
 		if err != nil {
-			p.API.LogError("Unable to set cookie" + err.Error())
-			http.Error(w, "Unable to set cookie", http.StatusInternalServerError)
+			p.API.LogError("Canary percentage configuration missing." + err.Error())
+			http.Error(w, "Canary percentage configuration missing.", http.StatusInternalServerError)
 			return
 		}
 	} else if cookie.Value == "never" {
 		p.API.LogDebug("Canary cookie is set to never for user " + userID)
-		err := p.canaryPercentage(w, userID)
+		response, err = p.addCanaryCookieBasedOnPercentage(w, userID)
 		if err != nil {
-			p.API.LogError("Unable to set cookie" + err.Error())
-			http.Error(w, "Unable to set cookie", http.StatusInternalServerError)
+			p.API.LogError("Canary percentage configuration missing." + err.Error())
+			http.Error(w, "Canary percentage configuration missing.", http.StatusInternalServerError)
 			return
 		}
 	}
+	b, _ := json.Marshal(response)
+	w.WriteHeader(response.StatusCode)
+	w.Write(b)
 }
 
 // canaryPercentage function is used to check the canary percentage and call the addCookie function.
-func (p *Plugin) canaryPercentage(w http.ResponseWriter, userID string) error {
+func (p *Plugin) addCanaryCookieBasedOnPercentage(w http.ResponseWriter, userID string) (apiResponse, error) {
 	config := p.getConfiguration()
 	percentage, err := strconv.Atoi(config.CanaryPercentage)
 	if err != nil {
-		return err
+		return apiResponse{"", "", http.StatusInternalServerError}, err
 	}
 	randomNumber := rand.Intn(100)
 	if randomNumber < percentage {
 		p.API.LogDebug("Setting Canary cookie to always for user " + userID)
-		p.addCookie(w, "canary", "always")
+		response := p.addCookie(w, "canary", "always")
+		return response, nil
 	} else {
 		p.API.LogDebug("Setting Canary cookie to never for user " + userID)
-		p.addCookie(w, "canary", "never")
+		response := p.addCookie(w, "canary", "never")
+		return response, nil
 	}
-	return nil
 }
 
 // addCookie function is used to set the canary cookie.
-func (p *Plugin) addCookie(w http.ResponseWriter, cookieName, cookieValue string) {
+func (p *Plugin) addCookie(w http.ResponseWriter, cookieName, cookieValue string) apiResponse {
 	expire := time.Now().AddDate(0, 0, 1)
 	canaryCookie := http.Cookie{
 		Name:    cookieName,
@@ -92,13 +97,6 @@ func (p *Plugin) addCookie(w http.ResponseWriter, cookieName, cookieValue string
 		Path:    "/",
 	}
 	http.SetCookie(w, &canaryCookie)
-	var response = apiResponse{cookieName, cookieValue, http.StatusOK}
-	writeAPIResponse(w, response)
-}
-
-// writeAPIResponse is used to return the response of the API.
-func writeAPIResponse(w http.ResponseWriter, response apiResponse) {
-	b, _ := json.Marshal(response)
-	w.WriteHeader(response.StatusCode)
-	w.Write(b)
+	response := apiResponse{cookieName, cookieValue, http.StatusOK}
+	return response
 }
