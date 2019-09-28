@@ -1,6 +1,6 @@
 {
-    "id": "com.mattermost.canary-plugin",
-    "name": "Canary Plugin",
+    "id": "com.mattermost.canary",
+    "name": "Canary",
     "description": "This plugin is used to configure canary deployments.",
     "version": "0.1.0",
     "min_server_version": "5.12.0",
@@ -17,6 +17,11 @@
     "settings_schema": {
         "header": "",
         "footer": "",
-        "settings": []
+        "settings": [{
+            "key": "CanaryPercentage",
+            "display_name": "Canary Percentage",
+            "type": "text",
+            "help_text": "The percentage of users that will be sent to canary build."
+        }]
     }
 }

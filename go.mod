@@ -13,6 +13,7 @@ require (
 	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.3.0
+	golang.org/x/tools v0.0.0-20190911230505-6bfd74cf029c // indirect
 )
 
 // Workaround for https://github.com/golang/go/issues/30831 and fallout.
