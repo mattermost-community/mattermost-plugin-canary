@@ -80,11 +80,11 @@ func (p *Plugin) addCanaryCookieBasedOnPercentage(w http.ResponseWriter, userID 
 		p.API.LogDebug("Setting Canary cookie to always for user " + userID)
 		response := p.addCookie(w, "canary", "always")
 		return response, nil
-	} else {
-		p.API.LogDebug("Setting Canary cookie to never for user " + userID)
-		response := p.addCookie(w, "canary", "never")
-		return response, nil
 	}
+	p.API.LogDebug("Setting Canary cookie to never for user " + userID)
+	response := p.addCookie(w, "canary", "never")
+	return response, nil
+
 }
 
 // addCookie function is used to set the canary cookie.
